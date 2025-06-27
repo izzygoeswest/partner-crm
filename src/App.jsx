@@ -1,17 +1,66 @@
-import { Routes, Route, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Routes, Route, Link, useNavigate } from "react-router-dom";
+import { supabase } from "./supabaseClient";
+
 import Home from "./pages/Home";
+import Login from "./pages/Login";
 import StudentPage from "./pages/StudentPage";
 
 export default function App() {
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  // Get current user on load
+  useEffect(() => {
+    const getUser = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      setUser(user);
+    };
+    getUser();
+
+    // Listen for auth changes
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => {
+      listener?.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    navigate("/login");
+  };
+
   return (
     <div className="p-6">
-      <nav className="mb-4">
-        <Link to="/" className="mr-4">Home</Link>
-        <Link to="/students/new">Add Student</Link>
+      {/* Navbar */}
+      <nav className="mb-6 flex justify-between items-center">
+        <div className="space-x-4">
+          <Link to="/" className="font-semibold text-blue-600">Home</Link>
+          {user && <Link to="/students/new">Add Student</Link>}
+        </div>
+
+        <div className="space-x-4">
+          {user ? (
+            <>
+              <span className="text-sm text-gray-600">Logged in as {user.email}</span>
+              <button onClick={handleLogout} className="text-red-600 text-sm underline">Logout</button>
+            </>
+          ) : (
+            <Link to="/login" className="text-blue-600">Login</Link>
+          )}
+        </div>
       </nav>
 
+      {/* Routes */}
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/login" element={<Login />} />
         <Route path="/students/new" element={<StudentPage />} />
       </Routes>
     </div>
