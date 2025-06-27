@@ -8,6 +8,9 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import StudentPage from "./pages/StudentPage";
 
+// Components
+import PrivateRoute from "./components/PrivateRoute";
+
 export default function App() {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
@@ -72,7 +75,14 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/students/new" element={<StudentPage />} />
+        <Route
+          path="/students/new"
+          element={
+            <PrivateRoute>
+              <StudentPage />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </div>
   );
