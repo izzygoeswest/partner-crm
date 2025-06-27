@@ -2,8 +2,10 @@ import { useEffect, useState } from "react";
 import { Routes, Route, Link, useNavigate } from "react-router-dom";
 import { supabase } from "./supabaseClient";
 
+// Pages
 import Home from "./pages/Home";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import StudentPage from "./pages/StudentPage";
 
 export default function App() {
@@ -49,10 +51,18 @@ export default function App() {
           {user ? (
             <>
               <span className="text-sm text-gray-600">Logged in as {user.email}</span>
-              <button onClick={handleLogout} className="text-red-600 text-sm underline">Logout</button>
+              <button
+                onClick={handleLogout}
+                className="text-red-600 text-sm underline"
+              >
+                Logout
+              </button>
             </>
           ) : (
-            <Link to="/login" className="text-blue-600">Login</Link>
+            <>
+              <Link to="/login" className="text-blue-600">Login</Link>
+              <Link to="/signup" className="text-blue-600 ml-4">Sign Up</Link>
+            </>
           )}
         </div>
       </nav>
@@ -61,6 +71,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
         <Route path="/students/new" element={<StudentPage />} />
       </Routes>
     </div>
