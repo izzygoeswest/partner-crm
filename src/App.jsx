@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import StudentPage from "./pages/StudentPage";
 import StudentList from "./pages/StudentList";
+import Dashboard from "./pages/Dashboard";
 
 // Components
 import PrivateRoute from "./components/PrivateRoute";
@@ -50,7 +51,8 @@ export default function App() {
           <Link to="/" className="font-semibold text-blue-600">Home</Link>
           {user && (
             <>
-              <Link to="/students/new">Add Student</Link>
+              <Link to="/dashboard" className="ml-4">Dashboard</Link>
+              <Link to="/students/new" className="ml-4">Add Student</Link>
               <Link to="/students" className="ml-4">View Students</Link>
             </>
           )}
@@ -94,6 +96,14 @@ export default function App() {
           element={
             <PrivateRoute>
               <StudentList />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute>
+              <Dashboard />
             </PrivateRoute>
           }
         />
