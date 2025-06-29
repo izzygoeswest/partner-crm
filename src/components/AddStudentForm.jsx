@@ -23,7 +23,6 @@ export default function AddStudentForm() {
     setSuccess(false);
     setError("");
 
-    // Get the currently logged-in user
     const {
       data: { user },
       error: authError,
@@ -35,20 +34,18 @@ export default function AddStudentForm() {
       return;
     }
 
-    // Get their partner ID from the users table
     const { data: profile, error: profileError } = await supabase
       .from("users")
       .select("partner_id")
       .eq("id", user.id)
       .single();
 
-    if (profileError || !profile) {
-      setError("Partner information not found.");
+    if (profileError || !profile?.partner_id) {
+      setError("Partner not found.");
       setLoading(false);
       return;
     }
 
-    // Insert the student record with partner ID
     const { error: insertError } = await supabase.from("students").insert([
       {
         full_name: formData.full_name,
@@ -76,48 +73,72 @@ export default function AddStudentForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-md mx-auto">
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-xl mx-auto bg-white shadow-md rounded-lg p-8 space-y-6"
+    >
+      <h2 className="text-2xl font-bold text-gray-800 text-center">Add New Student</h2>
+
+      {success && (
+        <p className="text-green-600 text-center font-medium">
+          Student added successfully!
+        </p>
+      )}
+      {error && (
+        <p className="text-red-600 text-center font-medium">
+          {error}
+        </p>
+      )}
+
       <div>
-        <label className="block font-medium">Full Name</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Full Name
+        </label>
         <input
           type="text"
           name="full_name"
           value={formData.full_name}
           onChange={handleChange}
+          className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring focus:border-blue-500"
           required
-          className="w-full border p-2 rounded"
         />
       </div>
 
       <div>
-        <label className="block font-medium">Email</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Email
+        </label>
         <input
           type="email"
           name="email"
           value={formData.email}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring focus:border-blue-500"
         />
       </div>
 
       <div>
-        <label className="block font-medium">Date of Birth</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Date of Birth
+        </label>
         <input
           type="date"
           name="date_of_birth"
           value={formData.date_of_birth}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring focus:border-blue-500"
         />
       </div>
 
       <div>
-        <label className="block font-medium">Referral Source</label>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Referral Source
+        </label>
         <select
           name="referral_source"
           value={formData.referral_source}
           onChange={handleChange}
-          className="w-full border p-2 rounded"
+          className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring focus:border-blue-500"
         >
           <option value="self">Self</option>
           <option value="school">School</option>
@@ -128,14 +149,11 @@ export default function AddStudentForm() {
 
       <button
         type="submit"
-        className="bg-blue-600 text-white px-4 py-2 rounded"
+        className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded transition"
         disabled={loading}
       >
         {loading ? "Saving..." : "Add Student"}
       </button>
-
-      {success && <p className="text-green-600 mt-2">Student added successfully!</p>}
-      {error && <p className="text-red-600 mt-2">{error}</p>}
     </form>
   );
 }
