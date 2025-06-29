@@ -31,76 +31,85 @@ export default function Dashboard() {
         ? {}
         : { partner_id: profile.partner_id };
 
-      // 1. Total students
+      // Total students
       const { count: studentCount } = await supabase
         .from("students")
         .select("*", { count: "exact", head: true })
         .match(filter);
-
       setTotalStudents(studentCount || 0);
 
-      // 2. Referral source breakdown
+      // Referral source breakdown
       const { data: referralStats } = await supabase
         .from("students")
-        .select("referral_source, count:referral_source", { count: "exact" })
-        .match(filter)
-        .group("referral_source");
+        .select("referral_source")
+        .match(filter);
 
-      const referralMap = {};
-      referralStats?.forEach((row) => {
-        referralMap[row.referral_source] = (referralMap[row.referral_source] || 0) + 1;
-      });
-      setReferralCounts(referralMap);
+      const referrals = referralStats.reduce((acc, curr) => {
+        acc[curr.referral_source] = (acc[curr.referral_source] || 0) + 1;
+        return acc;
+      }, {});
+      setReferralCounts(referrals);
 
-      // 3. Outcome breakdown
+      // Outcome breakdown
       const { data: outcomeStats } = await supabase
         .from("students")
-        .select("outcome, count:outcome", { count: "exact" })
-        .match(filter)
-        .group("outcome");
+        .select("outcome")
+        .match(filter);
 
-      const outcomeMap = {};
-      outcomeStats?.forEach((row) => {
-        const label = row.outcome || "Unknown";
-        outcomeMap[label] = (outcomeMap[label] || 0) + 1;
-      });
-      setOutcomes(outcomeMap);
+      const outcomesMap = outcomeStats.reduce((acc, curr) => {
+        const key = curr.outcome || "Unknown";
+        acc[key] = (acc[key] || 0) + 1;
+        return acc;
+      }, {});
+      setOutcomes(outcomesMap);
     };
 
     loadStats();
   }, []);
 
   return (
-    <div className="max-w-3xl mx-auto space-y-8">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
+    <div className="space-y-8">
+      <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
 
       {error && <p className="text-red-600">{error}</p>}
 
-      <div className="bg-white rounded shadow p-4">
-        <h2 className="text-lg font-semibold mb-2">Total Students</h2>
-        <p className="text-3xl font-bold">{totalStudents}</p>
+      <div className="grid md:grid-cols-3 gap-6">
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <h2 className="text-lg font-semibold text-gray-600 mb-2">Total Students</h2>
+          <p className="text-4xl font-bold text-blue-600">{totalStudents}</p>
+        </div>
+
+        <div className="bg-white rounded-lg shadow-md p-6 md:col-span-2">
+          <h2 className="text-lg font-semibold text-gray-600 mb-4">Referral Sources</h2>
+          {Object.keys(referralCounts).length === 0 ? (
+            <p className="text-sm text-gray-500">No data available.</p>
+          ) : (
+            <ul className="space-y-1">
+              {Object.entries(referralCounts).map(([source, count]) => (
+                <li key={source} className="flex justify-between">
+                  <span className="capitalize">{source}</span>
+                  <span className="font-semibold">{count}</span>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
 
-      <div className="bg-white rounded shadow p-4">
-        <h2 className="text-lg font-semibold mb-2">Referral Sources</h2>
-        <ul className="space-y-1">
-          {Object.entries(referralCounts).map(([source, count]) => (
-            <li key={source}>
-              {source}: <strong>{count}</strong>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      <div className="bg-white rounded shadow p-4">
-        <h2 className="text-lg font-semibold mb-2">Student Outcomes</h2>
-        <ul className="space-y-1">
-          {Object.entries(outcomes).map(([outcome, count]) => (
-            <li key={outcome}>
-              {outcome}: <strong>{count}</strong>
-            </li>
-          ))}
-        </ul>
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-lg font-semibold text-gray-600 mb-4">Student Outcomes</h2>
+        {Object.keys(outcomes).length === 0 ? (
+          <p className="text-sm text-gray-500">No outcomes recorded.</p>
+        ) : (
+          <ul className="space-y-1">
+            {Object.entries(outcomes).map(([status, count]) => (
+              <li key={status} className="flex justify-between">
+                <span className="capitalize">{status}</span>
+                <span className="font-semibold">{count}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
