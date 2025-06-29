@@ -17,7 +17,7 @@ export default function App() {
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
-  // Get current user on load
+  // Fetch the current user
   useEffect(() => {
     const getUser = async () => {
       const {
@@ -44,70 +44,85 @@ export default function App() {
   };
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen bg-gray-100">
       {/* Navbar */}
-      <nav className="mb-6 flex justify-between items-center">
-        <div className="space-x-4">
-          <Link to="/" className="font-semibold text-blue-600">Home</Link>
-          {user && (
-            <>
-              <Link to="/dashboard" className="ml-4">Dashboard</Link>
-              <Link to="/students/new" className="ml-4">Add Student</Link>
-              <Link to="/students" className="ml-4">View Students</Link>
-            </>
-          )}
+      <header className="bg-white shadow-md">
+        <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+          <div className="flex gap-4 items-center">
+            <Link to="/" className="text-xl font-bold text-blue-600">
+              Partner CRM
+            </Link>
+            {user && (
+              <>
+                <Link to="/dashboard" className="text-sm text-gray-700 hover:underline">
+                  Dashboard
+                </Link>
+                <Link to="/students/new" className="text-sm text-gray-700 hover:underline">
+                  Add Student
+                </Link>
+                <Link to="/students" className="text-sm text-gray-700 hover:underline">
+                  View Students
+                </Link>
+              </>
+            )}
+          </div>
+          <div className="flex gap-4 items-center">
+            {user ? (
+              <>
+                <span className="text-sm text-gray-500">Logged in as {user.email}</span>
+                <button
+                  onClick={handleLogout}
+                  className="text-sm text-red-600 hover:underline"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/login" className="text-sm text-blue-600 hover:underline">
+                  Login
+                </Link>
+                <Link to="/signup" className="text-sm text-blue-600 hover:underline">
+                  Sign Up
+                </Link>
+              </>
+            )}
+          </div>
         </div>
+      </header>
 
-        <div className="space-x-4">
-          {user ? (
-            <>
-              <span className="text-sm text-gray-600">Logged in as {user.email}</span>
-              <button
-                onClick={handleLogout}
-                className="text-red-600 text-sm underline"
-              >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link to="/login" className="text-blue-600">Login</Link>
-              <Link to="/signup" className="text-blue-600 ml-4">Sign Up</Link>
-            </>
-          )}
-        </div>
-      </nav>
-
-      {/* Routes */}
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route
-          path="/students/new"
-          element={
-            <PrivateRoute>
-              <StudentPage />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/students"
-          element={
-            <PrivateRoute>
-              <StudentList />
-            </PrivateRoute>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          }
-        />
-      </Routes>
+      {/* Page Content */}
+      <main className="max-w-4xl mx-auto px-4 py-8">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route
+            path="/students/new"
+            element={
+              <PrivateRoute>
+                <StudentPage />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/students"
+            element={
+              <PrivateRoute>
+                <StudentList />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            }
+          />
+        </Routes>
+      </main>
     </div>
   );
 }
