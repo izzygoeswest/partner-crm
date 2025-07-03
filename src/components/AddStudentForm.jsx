@@ -23,6 +23,7 @@ export default function AddStudentForm() {
     setSuccess(false);
     setError("");
 
+    // ✅ Get logged-in user
     const {
       data: { user },
       error: authError,
@@ -34,25 +35,14 @@ export default function AddStudentForm() {
       return;
     }
 
-    const { data: profile, error: profileError } = await supabase
-      .from("users")
-      .select("partner_id")
-      .eq("id", user.id)
-      .single();
-
-    if (profileError || !profile?.partner_id) {
-      setError("Partner not found.");
-      setLoading(false);
-      return;
-    }
-
+    // ✅ Insert student tied to user_id
     const { error: insertError } = await supabase.from("students").insert([
       {
         full_name: formData.full_name,
         email: formData.email,
         date_of_birth: formData.date_of_birth,
         referral_source: formData.referral_source,
-        partner_id: profile.partner_id,
+        user_id: user.id, // 👈 Link student to logged-in user
       },
     ]);
 
