@@ -22,7 +22,7 @@ export default function StudentList() {
         return;
       }
 
-      // Fetch students where user_id = current user ID
+      // ✅ Fetch students where user_id = current logged-in user
       const { data, error: studentError } = await supabase
         .from("students")
         .select("*")
@@ -52,7 +52,7 @@ export default function StudentList() {
       ) : (
         <ul className="space-y-4">
           {students.map((student) => (
-            <li key={student.id} className="border rounded p-4">
+            <li key={student.id} className="border rounded p-4 bg-white shadow">
               <p><strong>Name:</strong> {student.full_name}</p>
               <p><strong>Email:</strong> {student.email || "N/A"}</p>
               <p><strong>Referral Source:</strong> {student.referral_source}</p>
