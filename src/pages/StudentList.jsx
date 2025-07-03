@@ -22,24 +22,11 @@ export default function StudentList() {
         return;
       }
 
-      // Get logged-in user's partner ID
-      const { data: profile, error: profileError } = await supabase
-        .from("users")
-        .select("partner_id")
-        .eq("id", user.id)
-        .single();
-
-      if (profileError || !profile?.partner_id) {
-        setError("Partner not found.");
-        setLoading(false);
-        return;
-      }
-
-      // Fetch students linked to this partner
+      // Fetch students where user_id = current user ID
       const { data, error: studentError } = await supabase
         .from("students")
         .select("*")
-        .eq("partner_id", profile.partner_id)
+        .eq("user_id", user.id)
         .order("full_name", { ascending: true });
 
       if (studentError) {
