@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "../supabaseClient";
 import { useNavigate, Link } from "react-router-dom";
 
@@ -12,6 +12,13 @@ export default function Signup() {
 
   const [error, setError] = useState("");
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Step 3: Log session
+    supabase.auth.getSession().then(({ data }) => {
+      console.log("Session on load:", data);
+    });
+  }, []);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -34,6 +41,9 @@ export default function Signup() {
       return;
     }
 
+    // Step 2: Log user ID returned
+    console.log("Signed-up user:", user);
+
     const { error: profileError } = await supabase.from("users").insert([
       {
         id: user.id,
@@ -44,6 +54,7 @@ export default function Signup() {
     ]);
 
     if (profileError) {
+      console.error("Profile insert error:", profileError);
       setError("User created but failed to save profile.");
     } else {
       navigate("/dashboard");
@@ -65,7 +76,7 @@ export default function Signup() {
             name="full_name"
             value={formData.full_name}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring focus:border-blue-500"
+            className="w-full border border-gray-300 rounded px-4 py-2"
             placeholder="Jane Doe"
             required
           />
@@ -78,7 +89,7 @@ export default function Signup() {
             name="email"
             value={formData.email}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring focus:border-blue-500"
+            className="w-full border border-gray-300 rounded px-4 py-2"
             placeholder="you@example.com"
             required
           />
@@ -91,7 +102,7 @@ export default function Signup() {
             name="password"
             value={formData.password}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring focus:border-blue-500"
+            className="w-full border border-gray-300 rounded px-4 py-2"
             placeholder="••••••••"
             required
           />
@@ -103,7 +114,7 @@ export default function Signup() {
             name="role"
             value={formData.role}
             onChange={handleChange}
-            className="w-full border border-gray-300 rounded px-4 py-2 focus:outline-none focus:ring focus:border-blue-500"
+            className="w-full border border-gray-300 rounded px-4 py-2"
           >
             <option value="partner">Partner</option>
             <option value="advisor">Advisor</option>
