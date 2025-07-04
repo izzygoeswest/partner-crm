@@ -5,6 +5,7 @@ export default function Dashboard() {
   const [totalStudents, setTotalStudents] = useState(0);
   const [referralCounts, setReferralCounts] = useState({});
   const [outcomes, setOutcomes] = useState({});
+  const [recentStudents, setRecentStudents] = useState([]);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -21,15 +22,21 @@ export default function Dashboard() {
         return;
       }
 
-      const { data: profile } = await supabase
+      const { data: profile, error: profileError } = await supabase
         .from("users")
         .select("partner_id, role")
         .eq("id", user.id)
         .single();
 
-      const filter = profile.role === "admin"
-        ? {}
-        : { partner_id: profile.partner_id };
+      if (profileError || !profile) {
+        setError("Unable to load user profile.");
+        return;
+      }
+
+      const filter =
+        profile.role === "admin"
+          ? {}
+          : { user_id: user.id };
 
       // Total students
       const { count: studentCount } = await supabase
@@ -62,6 +69,18 @@ export default function Dashboard() {
         return acc;
       }, {});
       setOutcomes(outcomesMap);
+
+      // Recent students (5 latest by created_at)
+      const { data: recent, error: recentError } = await supabase
+        .from("students")
+        .select("full_name, email, referral_source, created_at")
+        .match(filter)
+        .order("created_at", { ascending: false })
+        .limit(5);
+
+      if (!recentError) {
+        setRecentStudents(recent);
+      }
     };
 
     loadStats();
@@ -75,12 +94,16 @@ export default function Dashboard() {
 
       <div className="grid md:grid-cols-3 gap-6">
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-600 mb-2">Total Students</h2>
+          <h2 className="text-lg font-semibold text-gray-600 mb-2">
+            Total Students
+          </h2>
           <p className="text-4xl font-bold text-blue-600">{totalStudents}</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6 md:col-span-2">
-          <h2 className="text-lg font-semibold text-gray-600 mb-4">Referral Sources</h2>
+          <h2 className="text-lg font-semibold text-gray-600 mb-4">
+            Referral Sources
+          </h2>
           {Object.keys(referralCounts).length === 0 ? (
             <p className="text-sm text-gray-500">No data available.</p>
           ) : (
@@ -97,7 +120,9 @@ export default function Dashboard() {
       </div>
 
       <div className="bg-white rounded-lg shadow-md p-6">
-        <h2 className="text-lg font-semibold text-gray-600 mb-4">Student Outcomes</h2>
+        <h2 className="text-lg font-semibold text-gray-600 mb-4">
+          Student Outcomes
+        </h2>
         {Object.keys(outcomes).length === 0 ? (
           <p className="text-sm text-gray-500">No outcomes recorded.</p>
         ) : (
@@ -106,6 +131,27 @@ export default function Dashboard() {
               <li key={status} className="flex justify-between">
                 <span className="capitalize">{status}</span>
                 <span className="font-semibold">{count}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-lg font-semibold text-gray-600 mb-4">
+          Recently Added Students
+        </h2>
+        {recentStudents.length === 0 ? (
+          <p className="text-sm text-gray-500">No recent students.</p>
+        ) : (
+          <ul className="space-y-2">
+            {recentStudents.map((s) => (
+              <li key={s.created_at} className="border p-3 rounded">
+                <p className="font-semibold">{s.full_name}</p>
+                <p className="text-sm text-gray-600">{s.email || "No email"}</p>
+                <p className="text-xs text-gray-500">
+                  Referred by: {s.referral_source}
+                </p>
               </li>
             ))}
           </ul>
