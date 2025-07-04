@@ -11,26 +11,31 @@ export default function StudentList() {
       setLoading(true);
       setError("");
 
+      // 🔐 Get logged-in user
       const {
         data: { user },
         error: authError,
       } = await supabase.auth.getUser();
 
+      console.log("👤 Authenticated user:", user);
+
       if (authError || !user) {
+        console.error("❌ Auth error:", authError);
         setError("Not authenticated.");
         setLoading(false);
         return;
       }
 
-      // ✅ Get students linked to the logged-in user
+      // 📦 Fetch students tied to this user
       const { data, error: studentError } = await supabase
         .from("students")
         .select("*")
         .eq("user_id", user.id)
         .order("full_name", { ascending: true });
 
+      console.log("📦 Students fetched:", data, studentError);
+
       if (studentError) {
-        console.error(studentError);
         setError("Could not load students.");
       } else {
         setStudents(data);
