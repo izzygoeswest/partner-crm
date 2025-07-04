@@ -33,19 +33,18 @@ export default function Dashboard() {
         return;
       }
 
-      const filter = profile.role === "admin"
-        ? {}
-        : { partner_id: profile.partner_id };
+      const filter = profile.role === "admin" ? {} : { partner_id: profile.partner_id };
 
       // Total students
       const { count: studentCount } = await supabase
         .from("students")
-        .select("*", { count: "exact", head: true })
+        .select("id", { count: "exact", head: true })
         .match(filter);
+
       setTotalStudents(studentCount || 0);
 
-      // Referral source breakdown
-      const { data: referralStats } = await supabase
+      // Referral sources breakdown
+      const { data: referralStats = [] } = await supabase
         .from("students")
         .select("referral_source")
         .match(filter);
@@ -54,10 +53,11 @@ export default function Dashboard() {
         acc[curr.referral_source] = (acc[curr.referral_source] || 0) + 1;
         return acc;
       }, {});
+
       setReferralCounts(referrals);
 
-      // Outcome breakdown
-      const { data: outcomeStats } = await supabase
+      // Outcomes breakdown
+      const { data: outcomeStats = [] } = await supabase
         .from("students")
         .select("outcome")
         .match(filter);
@@ -67,24 +67,18 @@ export default function Dashboard() {
         acc[key] = (acc[key] || 0) + 1;
         return acc;
       }, {});
+
       setOutcomes(outcomesMap);
 
-      // Recent students
-      let query = supabase
+      // Recent students (optional)
+      const { data: recent = [], error: recentError } = await supabase
         .from("students")
-        .select("full_name, email, referral_source, created_at")
-        .order("created_at", { ascending: false })
+        .select("full_name, email, referral_source")
+        .match(filter)
+        .order("id", { ascending: false })
         .limit(5);
 
-      if (profile.role !== "admin") {
-        query = query.eq("partner_id", profile.partner_id);
-      }
-
-      const { data: recent, error: recentError } = await query;
-
-      if (recentError) {
-        console.error("Recent students fetch error:", recentError);
-      } else {
+      if (!recentError) {
         setRecentStudents(recent);
       }
     };
@@ -121,39 +115,36 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-600 mb-4">Student Outcomes</h2>
-          {Object.keys(outcomes).length === 0 ? (
-            <p className="text-sm text-gray-500">No outcomes recorded.</p>
-          ) : (
-            <ul className="space-y-1">
-              {Object.entries(outcomes).map(([status, count]) => (
-                <li key={status} className="flex justify-between">
-                  <span className="capitalize">{status}</span>
-                  <span className="font-semibold">{count}</span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-lg font-semibold text-gray-600 mb-4">Student Outcomes</h2>
+        {Object.keys(outcomes).length === 0 ? (
+          <p className="text-sm text-gray-500">No outcomes recorded.</p>
+        ) : (
+          <ul className="space-y-1">
+            {Object.entries(outcomes).map(([status, count]) => (
+              <li key={status} className="flex justify-between">
+                <span className="capitalize">{status}</span>
+                <span className="font-semibold">{count}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
-        <div className="bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-lg font-semibold text-gray-600 mb-4">Recent Students</h2>
-          {recentStudents.length === 0 ? (
-            <p className="text-sm text-gray-500">No students found.</p>
-          ) : (
-            <ul className="space-y-2">
-              {recentStudents.map((s, idx) => (
-                <li key={idx} className="border-b pb-2">
-                  <p className="font-semibold">{s.full_name}</p>
-                  <p className="text-sm text-gray-500">{s.email} — {s.referral_source}</p>
-                  <p className="text-xs text-gray-400">{new Date(s.created_at).toLocaleString()}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+      <div className="bg-white rounded-lg shadow-md p-6">
+        <h2 className="text-lg font-semibold text-gray-600 mb-4">Recent Students</h2>
+        {recentStudents.length === 0 ? (
+          <p className="text-sm text-gray-500">No recent students found.</p>
+        ) : (
+          <ul className="space-y-2">
+            {recentStudents.map((student, index) => (
+              <li key={index} className="flex justify-between">
+                <span>{student.full_name}</span>
+                <span className="text-sm text-gray-500">{student.referral_source}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );
