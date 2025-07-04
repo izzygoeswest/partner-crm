@@ -22,7 +22,7 @@ export default function StudentList() {
         return;
       }
 
-      // ✅ Fetch students where user_id = current logged-in user
+      // ✅ Get students linked to the logged-in user
       const { data, error: studentError } = await supabase
         .from("students")
         .select("*")
@@ -30,6 +30,7 @@ export default function StudentList() {
         .order("full_name", { ascending: true });
 
       if (studentError) {
+        console.error(studentError);
         setError("Could not load students.");
       } else {
         setStudents(data);
@@ -52,11 +53,11 @@ export default function StudentList() {
       ) : (
         <ul className="space-y-4">
           {students.map((student) => (
-            <li key={student.id} className="border rounded p-4 bg-white shadow">
+            <li key={student.id} className="border rounded p-4">
               <p><strong>Name:</strong> {student.full_name}</p>
               <p><strong>Email:</strong> {student.email || "N/A"}</p>
               <p><strong>Referral Source:</strong> {student.referral_source}</p>
-              <p><strong>Status:</strong> {student.current_status}</p>
+              <p><strong>Status:</strong> {student.current_status || "N/A"}</p>
             </li>
           ))}
         </ul>
